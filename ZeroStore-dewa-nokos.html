@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero Store - Login & Dashboard Virtual Number</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles & Animation */
+        body {
+            background: radial-gradient(circle at top left, #1e3a8a, #0b1329);
+            min-height: 100vh;
+        }
+
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        .glow-1 {
+            position: fixed;
+            width: 450px;
+            height: 450px;
+            background: rgba(37, 99, 235, 0.25);
+            filter: blur(120px);
+            border-radius: 50%;
+            top: -5%;
+            left: -10%;
+            z-index: 0;
+            animation: pulseGlow 8s infinite alternate ease-in-out;
+        }
+
+        .glow-2 {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: rgba(29, 78, 216, 0.2);
+            filter: blur(130px);
+            border-radius: 50%;
+            bottom: -10%;
+            right: -10%;
+            z-index: 0;
+            animation: pulseGlow 10s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.15) translate(25px, -25px); }
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .r-50 { border-radius: 28px !important; }
+        .r-btn { border-radius: 20px !important; }
+        .r-input { border-radius: 20px !important; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.8); }
+        ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 10px; }
+
+        .tab-btn, .menu-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-100 flex justify-center items-start min-h-screen relative bg-slate-950 bg-grid-pattern overflow-x-hidden select-none">
+
+    <!-- Ambient Lighting Background -->
+    <div class="glow-1 pointer-events-none"></div>
+    <div class="glow-2 pointer-events-none"></div>
+
+    <!-- Notification Toast Modal -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900/95 text-white px-6 py-3 border border-brand-500/40 shadow-2xl backdrop-blur-md r-btn">
+        <i id="toast-icon" class="fas fa-check-circle text-brand-400 text-lg"></i>
+        <span id="toast-message" class="text-sm font-medium">Pesan Notifikasi</span>
+    </div>
+
+    <!-- MODAL TOP UP SALDO -->
+    <div id="modal-topup" onclick="closeModalOnBackdrop(event, 'modal-topup')" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 r-50 border-brand-500/30 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-topup')" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 r-btn flex items-center justify-center text-lg border border-emerald-500/30">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Top Up Saldo</h3>
+                    <p class="text-xs text-slate-400">Transfer DANA / GoPay & Unggah Bukti</p>
+                </div>
+            </div>
+            <form onsubmit="submitDepositRequest(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-brand-100/80 mb-1 ml-2">Nominal Deposit (Rp 20.000 - Rp 1.500.000)</label>
+                    <input type="number" id="topup-amount" required min="20000" max="1500000" placeholder="Min 20000, Max 1500000" class="w-full px-4 py-3 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-sm r-input focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="setTopupPreset(20000)" class="py-2 bg-slate-900 border border-white/10 r-btn text-xs text-slate-300 hover:border-emerald-500/50">20rb</button>
+                    <button type="button" onclick="setTopupPreset(50000)" class="py-2 bg-slate-900 border border-white/10 r-btn text-xs text-slate-300 hover:border-emerald-500/50">50rb</button>
+                    <button type="button" onclick="setTopupPreset(120000)" class="py-2 bg-slate-900 border border-white/10 r-btn text-xs text-slate-300 hover:border-emerald-500/50">120rb</button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-brand-100/80 mb-1 ml-2">Pilih Metode Transfer</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center justify-between p-3 bg-slate-900/90 border border-white/10 r-btn cursor-pointer hover:border-sky-500">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="payment_method" value="DANA" checked onchange="togglePaymentInfo('DANA')" class="accent-sky-500">
+                                <span class="text-xs font-bold text-white">DANA</span>
+                            </div>
+                            <i class="fa-solid fa-wallet text-sky-400 text-sm"></i>
+                        </label>
+                        <label class="flex items-center justify-between p-3 bg-slate-900/90 border border-white/10 r-btn cursor-pointer hover:border-emerald-500">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="payment_method" value="GoPay" onchange="togglePaymentInfo('GoPay')" class="accent-emerald-500">
+                                <span class="text-xs font-bold text-white">GoPay</span>
+                            </div>
+                            <i class="fa-solid fa-money-bill-wave text-emerald-400 text-sm"></i>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Info Nomor Tujuan -->
+                <div class="p-3 bg-slate-900/90 border border-brand-500/30 r-btn space-y-1">
+                    <p class="text-[11px] text-slate-400">Nomor Tujuan (<span id="payment-method-label" class="font-bold text-sky-400">DANA</span>):</p>
+                    <div class="flex items-center justify-between">
+                        <span id="payment-phone-number" class="text-sm font-mono font-bold text-emerald-400">088263096528</span>
+                        <button type="button" onclick="copyToClipboard(document.getElementById('payment-phone-number').textContent)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] r-btn">
+                            <i class="fa-regular fa-copy"></i> Salin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload Bukti Detail Transaksi -->
+                <div>
+                    <label class="block text-xs font-semibold text-brand-100/80 mb-1 ml-2">Unggah Bukti Detail Transaksi (Foto)</label>
+                    <input type="file" id="topup-proof" accept="image/*" required onchange="previewProofImage(event)" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:r-btn file:border-0 file:text-xs file:font-semibold file:bg-brand-600 file:text-white hover:file:bg-brand-500">
+                    <p class="text-[10px] text-amber-400/90 mt-1 ml-2">*Wajib melampirkan screenshot detail transaksi</p>
+                    <div id="proof-preview-box" class="mt-2 hidden text-center">
+                        <img id="proof-preview-img" class="max-h-36 rounded-lg mx-auto border border-white/20 shadow-md">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm r-btn shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                    <span>KIRIM KONFIRMASI DEPOSIT</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECTION 1: AUTH CONTAINER (LOGIN & REGISTER) -->
+    <!-- ========================================== -->
+    <div id="auth-section" class="w-full max-w-md my-auto py-10 px-4 z-10">
+        
+        <!-- App Logo Header -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-brand-600 to-brand-400 r-50 shadow-xl shadow-brand-500/20 border border-white/20 mb-3">
+                <i class="fa-solid fa-sim-card text-2xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-black text-white tracking-tight">ZERO STORE</h1>
+            <p class="text-xs text-brand-200/70 mt-1">Layanan Nomor Virtual & OTP Tercepat</p>
+        </div>
+
+        <!-- Glassmorphism Card Container -->
+        <div class="glass-card p-6 r-50 shadow-2xl relative overflow-hidden">
+            
+            <!-- Navigation Tab Bar (Login vs Register) -->
+            <div class="bg-slate-900/80 p-1.5 r-50 mb-6 border border-white/5 flex gap-1">
+                <button id="tab-login-btn" onclick="switchTab('login')" class="tab-btn flex-1 py-3 text-sm font-semibold r-50 text-white bg-brand-600 shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket text-xs"></i>
+                    <span>Masuk</span>
+                </button>
+                <button id="tab-register-btn" onclick="switchTab('register')" class="tab-btn flex-1 py-3 text-sm font-semibold r-50 text-slate-400 hover:text-white flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                    <span>Daftar</span>
+                </button>
+            </div>
+
+            <!-- FORM 1: LOGIN FORM -->
+            <form id="login-form" onsubmit="handleAuth(event, 'login')" class="space-y-5 block">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-brand-100/80 ml-3">Username</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-user absolute left-4 text-brand-400/70 text-sm"></i>
+                        <input type="text" id="login-username" required placeholder="Masukkan username" 
+                            class="w-full pl-11 pr-5 py-3.5 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-sm r-input focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center px-3">
+                        <label class="block text-xs font-semibold text-brand-100/80">Password</label>
+                        <a href="javascript:void(0)" onclick="showToast('Akun developer default: JarrZy / kalipasir', 'info')" class="text-[11px] text-brand-400 hover:underline">Bantuan Login?</a>
+                    </div>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-lock absolute left-4 text-brand-400/70 text-sm"></i>
+                        <input type="password" id="login-password" required placeholder="Masukkan password" 
+                            class="w-full pl-11 pr-12 py-3.5 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-sm r-input focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all">
+                        <button type="button" onclick="togglePasswordVisibility('login-password', event)" class="absolute right-4 text-slate-400 hover:text-white focus:outline-none p-1">
+                            <i class="fa-solid fa-eye text-sm pointer-events-none"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-brand-600 via-brand-500 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white font-bold text-sm tracking-wide r-btn shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2">
+                    <span>MASUK SEKARANG</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+
+            <!-- FORM 2: REGISTER FORM -->
+            <form id="register-form" onsubmit="handleAuth(event, 'register')" class="space-y-4 hidden">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-brand-100/80 ml-3">Username Baru</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-user-tag absolute left-4 text-brand-400/70 text-sm"></i>
+                        <input type="text" id="reg-username" required placeholder="Buat username unik" 
+                            class="w-full pl-11 pr-5 py-3.5 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-sm r-input focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-brand-100/80 ml-3">Password</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-lock absolute left-4 text-brand-400/70 text-sm"></i>
+                        <input type="password" id="reg-password" required placeholder="Buat password aman" 
+                            class="w-full pl-11 pr-12 py-3.5 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-sm r-input focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all">
+                        <button type="button" onclick="togglePasswordVisibility('reg-password', event)" class="absolute right-4 text-slate-400 hover:text-white focus:outline-none p-1">
+                            <i class="fa-solid fa-eye text-sm pointer-events-none"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-brand-100/80 ml-3">Konfirmasi Password</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-shield-halved absolute left-4 text-brand-400/70 text-sm"></i>
+                        <input type="password" id="reg-confirm-password" required placeholder="Ulangi password" 
+                            class="w-full pl-11 pr-12 py-3.5 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-sm r-input focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all">
+                        <button type="button" onclick="togglePasswordVisibility('reg-confirm-password', event)" class="absolute right-4 text-slate-400 hover:text-white focus:outline-none p-1">
+                            <i class="fa-solid fa-eye text-sm pointer-events-none"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-brand-600 to-blue-700 hover:from-cyan-400 hover:to-blue-600 text-white font-bold text-sm tracking-wide r-btn shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2">
+                    <span>BUAT AKUN SEKARANG</span>
+                    <i class="fa-solid fa-user-check text-xs"></i>
+                </button>
+            </form>
+
+        </div>
+
+        <p class="text-center text-xs text-slate-400/60 mt-6 font-light">
+            &copy; 2026 Zero Store. All rights reserved.
+        </p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: DASHBOARD MAIN CONTAINER -->
+    <!-- ========================================== -->
+    <div id="dashboard-section" class="w-full max-w-md z-10 pb-28 pt-6 px-4 hidden">
+        
+        <!-- Header User Greeting & Logout -->
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    Selamat datang, <span id="dash-username" class="text-brand-400 font-extrabold">User</span> 👋
+                </h2>
+                <div class="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/30 text-amber-300 px-3 py-1 mt-2 text-xs font-medium r-btn shadow-sm">
+                    <i class="fa-solid fa-award text-amber-400"></i>
+                    <span>Pangkat Bronze</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-2">Ringkasan akun dan aktivitas Anda</p>
+            </div>
+
+            <button onclick="handleLogout()" title="Keluar Akun" class="w-10 h-10 bg-slate-900/80 hover:bg-red-500/20 border border-white/10 hover:border-red-500/40 text-slate-300 hover:text-red-400 r-btn flex items-center justify-center transition-all shadow-md active:scale-95">
+                <i class="fa-solid fa-right-from-bracket text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Saldo Card -->
+        <div class="glass-card p-6 r-50 mb-4 bg-gradient-to-br from-brand-900/80 via-slate-900/90 to-brand-950/90 border-brand-500/30 shadow-xl relative overflow-hidden">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-brand-500/20 text-brand-400 r-btn flex items-center justify-center text-lg border border-brand-500/30">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <span class="text-xs font-semibold text-brand-200/80 tracking-wide uppercase">Saldo Tersedia</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-semibold text-brand-400">Rp</span>
+                <span id="dash-saldo" class="text-4xl font-extrabold tracking-tight text-white">0</span>
+            </div>
+        </div>
+
+        <!-- Grid 2 Col: Order Aktif & Total Order -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="glass-card p-4 r-50 bg-slate-900/60 flex flex-col justify-between">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                    <span class="text-xs text-slate-300 font-medium">Order Aktif</span>
+                </div>
+                <p id="dash-order-aktif" class="text-2xl font-bold text-white">0</p>
+            </div>
+            <div class="glass-card p-4 r-50 bg-slate-900/60 flex flex-col justify-between">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-layer-group text-brand-400 text-xs"></i>
+                    <span class="text-xs text-slate-300 font-medium">Total Order</span>
+                </div>
+                <p id="dash-total-order" class="text-2xl font-bold text-white">0</p>
+            </div>
+        </div>
+
+        <!-- Main Feature Navigation Grid 2x2 -->
+        <div class="grid grid-cols-2 gap-3 mb-8">
+            <button onclick="navigateToView('beli')" class="menu-card glass-card p-5 r-50 text-left hover:border-brand-500/50 hover:bg-slate-900/80 transition-all group">
+                <div class="w-12 h-12 bg-purple-500/20 text-purple-400 r-btn flex items-center justify-center text-xl mb-3 border border-purple-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">Beli Nomor</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Tambah nomor baru</p>
+            </button>
+
+            <button onclick="openModal('modal-topup')" class="menu-card glass-card p-5 r-50 text-left hover:border-brand-500/50 hover:bg-slate-900/80 transition-all group">
+                <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 r-btn flex items-center justify-center text-xl mb-3 border border-emerald-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">Top Up</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Isi saldo cepat</p>
+            </button>
+
+            <button onclick="navigateToView('riwayat')" class="menu-card glass-card p-5 r-50 text-left hover:border-brand-500/50 hover:bg-slate-900/80 transition-all group">
+                <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 r-btn flex items-center justify-center text-xl mb-3 border border-cyan-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">Order</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Cek status order</p>
+            </button>
+
+            <button onclick="openMutationModal()" class="menu-card glass-card p-5 r-50 text-left hover:border-brand-500/50 hover:bg-slate-900/80 transition-all group">
+                <div class="w-12 h-12 bg-pink-500/20 text-pink-400 r-btn flex items-center justify-center text-xl mb-3 border border-pink-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-right-left"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">Mutasi Saldo</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Riwayat deposit</p>
+            </button>
+        </div>
+
+        <!-- System Stats Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="glass-card p-3.5 r-50 bg-slate-900/80 border-white/5 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm border border-emerald-500/30">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium">Server Uptime</p>
+                    <p class="text-xs font-bold text-emerald-400">99.9% Lifetime</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-3.5 r-50 bg-slate-900/80 border-white/5 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm border border-blue-500/30">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium">Database Node</p>
+                    <p class="text-xs font-bold text-blue-400">Normal / Active</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-3.5 r-50 bg-slate-900/80 border-white/5 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm border border-purple-500/30">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium">Sistem Keamanan</p>
+                    <p class="text-xs font-bold text-purple-400">Terproteksi</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-3.5 r-50 bg-slate-900/80 border-white/5 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm border border-amber-500/30">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-medium">Layanan OTP</p>
+                    <p class="text-xs font-bold text-amber-400">100% Normal</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Order List Card -->
+        <div class="glass-card p-5 r-50 border-white/10 mb-6">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Pesanan Terakhir</h3>
+            <div id="order-list-container" class="space-y-2">
+                <!-- Inner items inserted dynamically -->
+            </div>
+        </div>
+
+        <!-- SPECIAL DEVELOPER PANEL ACCESS BUTTON (Visible only for JarrZy) -->
+        <div id="developer-panel-entry" class="mb-6 hidden">
+            <button onclick="navigateToView('devpanel')" class="w-full py-4 bg-gradient-to-r from-red-600 via-amber-600 to-purple-600 hover:from-red-500 hover:to-purple-500 text-white font-extrabold text-sm r-btn shadow-xl flex items-center justify-center gap-3 border border-amber-400/40 animate-pulse">
+                <i class="fa-solid fa-code text-lg"></i>
+                <span>PANEL KHUSUS DEVELOPER (JarrZy)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECTION 3: BELI NOMOR SECTION -->
+    <!-- ========================================== -->
+    <div id="buy-section" class="w-full max-w-md z-10 pb-28 pt-6 px-4 hidden">
+        <div class="flex items-center gap-3 mb-6">
+            <button onclick="navigateToView('home')" class="w-9 h-9 bg-slate-900 border border-white/10 r-btn flex items-center justify-center text-slate-300 hover:text-white">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight">Beli Nomor Virtual</h2>
+                <p class="text-xs text-slate-400">Pilih aplikasi & negara tujuan</p>
+            </div>
+        </div>
+
+        <!-- STEP 1: PILIH APLIKASI -->
+        <div id="buy-step-apps" class="space-y-4">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                <input type="text" id="search-app" onkeyup="filterApps()" placeholder="Cari layanan aplikasi..." class="w-full pl-10 pr-4 py-3 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-xs r-input focus:outline-none focus:border-brand-500">
+            </div>
+
+            <!-- Special Featured Banner for WhatsApp Vermate -->
+            <div onclick="selectApp('WhatsApp Vermate', 'fa-solid fa-circle-check text-blue-400', 'bg-blue-600/20', 120000)" class="app-card glass-card p-4 r-50 text-left border-blue-500/40 hover:border-blue-400 bg-gradient-to-r from-blue-950/60 to-slate-900/80 cursor-pointer flex items-center justify-between group transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-blue-500/20 text-blue-400 r-btn flex items-center justify-center text-xl border border-blue-500/40 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <h4 class="text-xs font-black text-white">WhatsApp Vermate</h4>
+                            <span class="bg-blue-500/20 text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-blue-500/30">META</span>
+                        </div>
+                        <p class="text-[10px] text-slate-300 mt-0.5">Centang Biru &bull; Anti Banned/Kenon</p>
+                        <p class="text-[10px] text-emerald-400 font-bold mt-1">Rp 120.000</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-blue-400"></i>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3" id="app-grid-list">
+                <button onclick="selectApp('WhatsApp', 'fa-brands fa-whatsapp text-emerald-400', 'bg-emerald-500/20', 3500)" class="app-card glass-card p-4 r-50 text-left border-slate-800 hover:border-emerald-500/50 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 r-btn flex items-center justify-center text-xl">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">WhatsApp</h4>
+                        <p class="text-[10px] text-slate-400">Mulai Rp 3.500</p>
+                    </div>
+                </button>
+
+                <button onclick="selectApp('Telegram', 'fa-brands fa-telegram text-sky-400', 'bg-sky-500/20', 3500)" class="app-card glass-card p-4 r-50 text-left border-slate-800 hover:border-sky-500/50 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-sky-500/20 text-sky-400 r-btn flex items-center justify-center text-xl">
+                        <i class="fa-brands fa-telegram"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">Telegram</h4>
+                        <p class="text-[10px] text-slate-400">Mulai Rp 3.500</p>
+                    </div>
+                </button>
+
+                <button onclick="selectApp('TikTok', 'fa-brands fa-tiktok text-pink-400', 'bg-pink-500/20', 3000)" class="app-card glass-card p-4 r-50 text-left border-slate-800 hover:border-pink-500/50 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-pink-500/20 text-pink-400 r-btn flex items-center justify-center text-xl">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">TikTok</h4>
+                        <p class="text-[10px] text-slate-400">Mulai Rp 3.000</p>
+                    </div>
+                </button>
+
+                <button onclick="selectApp('Instagram', 'fa-brands fa-instagram text-rose-400', 'bg-rose-500/20', 3000)" class="app-card glass-card p-4 r-50 text-left border-slate-800 hover:border-rose-500/50 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-rose-500/20 text-rose-400 r-btn flex items-center justify-center text-xl">
+                        <i class="fa-brands fa-instagram"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">Instagram</h4>
+                        <p class="text-[10px] text-slate-400">Mulai Rp 3.000</p>
+                    </div>
+                </button>
+
+                <button onclick="selectApp('DANA', 'fa-solid fa-wallet text-blue-400', 'bg-blue-500/20', 4000)" class="app-card glass-card p-4 r-50 text-left border-slate-800 hover:border-blue-500/50 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-500/20 text-blue-400 r-btn flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">DANA</h4>
+                        <p class="text-[10px] text-slate-400">Mulai Rp 4.000</p>
+                    </div>
+                </button>
+
+                <button onclick="selectApp('GoPay', 'fa-solid fa-money-bill-wave text-emerald-400', 'bg-emerald-500/20', 4000)" class="app-card glass-card p-4 r-50 text-left border-slate-800 hover:border-emerald-500/50 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 r-btn flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">GoPay</h4>
+                        <p class="text-[10px] text-slate-400">Mulai Rp 4.000</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: PILIH NEGARA -->
+        <div id="buy-step-country" class="space-y-4 hidden">
+            <div class="flex items-center justify-between p-3 bg-slate-900/80 r-btn border border-white/5 mb-3">
+                <div class="flex items-center gap-3">
+                    <div id="selected-app-icon" class="w-8 h-8 bg-emerald-500/20 text-emerald-400 r-btn flex items-center justify-center">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <span id="selected-app-name" class="text-xs font-bold text-white">WhatsApp</span>
+                </div>
+                <button onclick="backToApps()" class="text-xs text-brand-400 hover:underline font-medium">Ubah</button>
+            </div>
+
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                <input type="text" id="search-country" onkeyup="filterCountries()" placeholder="Cari negara..." class="w-full pl-10 pr-4 py-3 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-xs r-input focus:outline-none focus:border-brand-500">
+            </div>
+
+            <div class="space-y-2 max-h-[68vh] overflow-y-auto pr-1" id="country-list">
+                <!-- Negara-negara generated in JS -->
+            </div>
+        </div>
+
+        <!-- STEP 3: PILIH SERVER / BELI -->
+        <div id="buy-step-servers" class="space-y-4 hidden">
+            <div class="flex items-center justify-between p-3 bg-slate-900/80 r-btn border border-white/5 mb-3">
+                <div class="flex items-center gap-3">
+                    <div id="server-app-icon" class="w-8 h-8 bg-emerald-500/20 text-emerald-400 r-btn flex items-center justify-center">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h4 id="server-app-title" class="text-xs font-bold text-white">WhatsApp</h4>
+                        <p id="server-header-country" class="text-[10px] text-slate-400">🇮🇩 Indonesia (+62)</p>
+                    </div>
+                </div>
+                <button onclick="backToCountries()" class="text-xs text-brand-400 hover:underline font-medium">Ubah Negara</button>
+            </div>
+
+            <div id="server-list" class="space-y-2.5">
+                <!-- Servers generated in JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECTION 4: RIWAYAT ORDER SECTION -->
+    <!-- ========================================== -->
+    <div id="order-section" class="w-full max-w-md z-10 pb-28 pt-6 px-4 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight">Riwayat Order</h2>
+                <p class="text-xs text-slate-400">Daftar transaksi nomor virtual Anda</p>
+            </div>
+            <span id="order-history-count" class="text-xs font-bold text-brand-400 bg-brand-500/10 px-3 py-1 r-btn border border-brand-500/20">0 Order</span>
+        </div>
+
+        <div class="relative mb-4">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+            <input type="text" id="search-history" onkeyup="filterOrderHistory()" placeholder="Cari ID order / nomor..." class="w-full pl-10 pr-4 py-3 bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 text-xs r-input focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div id="full-order-history-list" class="space-y-3">
+            <!-- Items rendered via JS -->
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECTION 5: DEVELOPER PANEL VIEW (JarrZy) -->
+    <!-- ========================================== -->
+    <div id="devpanel-section" class="w-full max-w-md z-10 pb-28 pt-6 px-4 hidden">
+        <div class="flex items-center gap-3 mb-6">
+            <button onclick="navigateToView('home')" class="w-9 h-9 bg-slate-900 border border-white/10 r-btn flex items-center justify-center text-slate-300 hover:text-white">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <div class="flex-1">
+                <h2 class="text-xl font-black text-amber-400 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield"></i> Developer Panel
+                </h2>
+                <p class="text-xs text-slate-400">Kontrol Akun & ACC Konfirmasi Deposit</p>
+            </div>
+        </div>
+
+        <!-- TAB DEVELOPER -->
+        <div class="bg-slate-900/80 p-1.5 r-50 mb-6 border border-white/5 flex gap-1">
+            <button id="devtab-requests-btn" onclick="switchDevTab('requests')" class="flex-1 py-2.5 text-xs font-semibold r-50 text-white bg-amber-600 shadow-md flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+                <span>Bukti Deposit</span>
+            </button>
+            <button id="devtab-users-btn" onclick="switchDevTab('users')" class="flex-1 py-2.5 text-xs font-semibold r-50 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Kontrol Akun</span>
+            </button>
+        </div>
+
+        <!-- DEV TAB 1: LIST DEPOSIT REQUESTS WITH PROOF -->
+        <div id="devtab-requests" class="space-y-4">
+            <div class="glass-card p-4 r-50 bg-slate-900/80 border-amber-500/30">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-clock"></i> Permintaan Deposit Masuk
+                </h3>
+                <div id="dev-deposit-requests-list" class="space-y-3">
+                    <!-- Diisi via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- DEV TAB 2: MANAGE ALL USERS & SALDO -->
+        <div id="devtab-users" class="space-y-4 hidden">
+            <div class="glass-card p-4 r-50 bg-slate-900/80 border-amber-500/30">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i> Semua Akun Terdaftar
+                </h3>
+                <div id="dev-users-list" class="space-y-3">
+                    <!-- Diisi via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL BUKTI TF FOR DEVELOPER -->
+    <div id="modal-dev-proof" onclick="closeModalOnBackdrop(event, 'modal-dev-proof')" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-5 r-50 border-amber-500/40 shadow-2xl relative text-center">
+            <button onclick="closeModal('modal-dev-proof')" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-sm font-bold text-amber-400 mb-2">Detail Bukti Transaksi</h3>
+            <div class="p-2 bg-slate-950 rounded-xl border border-white/10 mb-3">
+                <img id="dev-proof-img-full" class="w-full max-h-[60vh] object-contain rounded-lg mx-auto">
+            </div>
+            <p id="dev-proof-info-text" class="text-xs text-slate-300 font-medium mb-3"></p>
+            <div class="grid grid-cols-2 gap-2" id="dev-proof-action-buttons">
+                <!-- Action Buttons -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL UBAH SALDO CUSTOM -->
+    <div id="modal-change-saldo" onclick="closeModalOnBackdrop(event, 'modal-change-saldo')" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-6 r-50 border-amber-500/40 shadow-2xl relative">
+            <button onclick="closeModal('modal-change-saldo')" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-sm font-bold text-amber-400 mb-1">Ubah Saldo Pengguna</h3>
+            <p id="change-saldo-username" class="text-xs text-slate-300 font-semibold mb-4">User: -</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Masukkan Jumlah Saldo Baru (Rp)</label>
+                    <input type="number" id="input-new-saldo" placeholder="Contoh: 100000" class="w-full px-4 py-3 bg-slate-900 border border-white/10 text-white text-sm r-input focus:outline-none focus:border-amber-500">
+                </div>
+                <button onclick="confirmChangeUserBalance()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs r-btn shadow-lg">
+                    SIMPAN SALDO BARU
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MUTASI SALDO -->
+    <div id="modal-mutation" onclick="closeModalOnBackdrop(event, 'modal-mutation')" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-5 r-50 border-pink-500/30 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button onclick="closeModal('modal-mutation')" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-pink-500/20 text-pink-400 r-btn flex items-center justify-center text-lg border border-pink-500/30">
+                    <i class="fa-solid fa-right-left"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Mutasi Saldo</h3>
+                    <p class="text-xs text-slate-400">Riwayat pengisian deposit Anda</p>
+                </div>
+            </div>
+            <div id="mutation-list-container" class="space-y-2.5 overflow-y-auto pr-1 flex-1">
+                <!-- Inner mutation items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVBAR -->
+    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 border-t border-white/10 backdrop-blur-md px-4 py-2 hidden">
+        <div class="max-w-md mx-auto flex items-center justify-around">
+            <button id="nav-home" onclick="setActiveNav('home')" class="flex flex-col items-center justify-center py-2 px-4 r-btn bg-brand-600 text-white transition-all shadow-md">
+                <i class="fa-solid fa-house text-sm"></i>
+                <span class="text-[10px] mt-1 font-medium">Beranda</span>
+            </button>
+            <button id="nav-beli" onclick="setActiveNav('beli')" class="flex flex-col items-center justify-center py-2 px-4 r-btn text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-cart-shopping text-sm"></i>
+                <span class="text-[10px] mt-1 font-medium">Beli</span>
+            </button>
+            <button id="nav-topup" onclick="setActiveNav('topup')" class="flex flex-col items-center justify-center py-2 px-4 r-btn text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-wallet text-sm"></i>
+                <span class="text-[10px] mt-1 font-medium">Top Up</span>
+            </button>
+            <button id="nav-riwayat" onclick="setActiveNav('riwayat')" class="flex flex-col items-center justify-center py-2 px-4 r-btn text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-clock-rotate-left text-sm"></i>
+                <span class="text-[10px] mt-1 font-medium">Riwayat</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let currentAccount = null;
+        let currentSelectedApp = { name: 'WhatsApp', icon: 'fa-brands fa-whatsapp text-emerald-400', color: 'bg-emerald-500/20', code: 'WA', basePrice: 3500 };
+        let currentSelectedCountry = { name: 'Indonesia', code: '62', iso: 'ID', flag: '🇮🇩' };
+        
+        const PAYMENT_NUMBERS = {
+            DANA: "088263096528",
+            GoPay: "088263096528"
+        };
+        let uploadedProofBase64 = null;
+
+        // --- LIST NEGARA BESERTA KODE TELEPONNYA (Termasuk Cina) ---
+        const COUNTRIES_DATA = [
+            { name: 'Cina', code: '86', iso: 'CN', flag: '🇨🇳' },
+            { name: 'Indonesia', code: '62', iso: 'ID', flag: '🇮🇩' },
+            { name: 'Malaysia', code: '60', iso: 'MY', flag: '🇲🇾' },
+            { name: 'Singapura', code: '65', iso: 'SG', flag: '🇸🇬' },
+            { name: 'Thailand', code: '66', iso: 'TH', flag: '🇹🇭' },
+            { name: 'Filipina', code: '63', iso: 'PH', flag: '🇵🇭' },
+            { name: 'Vietnam', code: '84', iso: 'VN', flag: '🇻🇳' },
+            { name: 'Amerika Serikat', code: '1', iso: 'US', flag: '🇺🇸' },
+            { name: 'Inggris', code: '44', iso: 'GB', flag: '🇬🇧' },
+            { name: 'India', code: '91', iso: 'IN', flag: '🇮🇳' },
+            { name: 'Jepang', code: '81', iso: 'JP', flag: '🇯🇵' },
+            { name: 'Korea Selatan', code: '82', iso: 'KR', flag: '🇰🇷' },
+            { name: 'Rusia', code: '7', iso: 'RU', flag: '🇷🇺' },
+            { name: 'Jerman', code: '49', iso: 'DE', flag: '🇩🇪' },
+            { name: 'Prancis', code: '33', iso: 'FR', flag: '🇫🇷' },
+            { name: 'Brasil', code: '55', iso: 'BR', flag: '🇧🇷' },
+            { name: 'Australia', code: '61', iso: 'AU', flag: '🇦🇺' },
+            { name: 'Kanada', code: '1', iso: 'CA', flag: '🇨🇦' },
+            { name: 'Turki', code: '90', iso: 'TR', flag: '🇹🇷' },
+            { name: 'Arab Saudi', code: '966', iso: 'SA', flag: '🇸🇦' },
+            { name: 'Meksiko', code: '52', iso: 'MX', flag: '🇲🇽' }
+        ];
+
+        // --- LOCAL STORAGE & AUTH HELPER FUNCTIONS ---
+        function getRegisteredUsers() {
+            try {
+                const data = localStorage.getItem('zerostore_users');
+                let users = data ? JSON.parse(data) : {};
+                
+                // Pastikan akun utama developer JarrZy selalu ada dan sinkron
+                if (!users['jarrzy']) {
+                    users['jarrzy'] = {
+                        username: 'JarrZy',
+                        password: 'kalipasir',
+                        saldo: 999999999,
+                        totalOrders: 0,
+                        activeOrders: 0,
+                        isDeveloper: true,
+                        createdAt: new Date().toISOString()
+                    };
+                } else {
+                    // Paksa update password & status dev jika terhapus/berubah
+                    users['jarrzy'].password = 'kalipasir';
+                    users['jarrzy'].isDeveloper = true;
+                }
+                localStorage.setItem('zerostore_users', JSON.stringify(users));
+                return users;
+            } catch (e) {
+                console.error("Gagal membaca data user:", e);
+                return {
+                    'jarrzy': {
+                        username: 'JarrZy',
+                        password: 'kalipasir',
+                        saldo: 999999999,
+                        totalOrders: 0,
+                        activeOrders: 0,
+                        isDeveloper: true,
+                        createdAt: new Date().toISOString()
+                    }
+                };
+            }
+        }
+
+        function getDepositRequests() {
+            try {
+                const data = localStorage.getItem('zerostore_deposit_requests');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveDepositRequests(requests) {
+            try {
+                localStorage.setItem('zerostore_deposit_requests', JSON.stringify(requests));
+            } catch (e) {
+                console.error("Gagal menyimpan deposit:", e);
+            }
+        }
+
+        function saveUsersData(users) {
+            try {
+                localStorage.setItem('zerostore_users', JSON.stringify(users));
+            } catch (e) {
+                console.error("Gagal menyimpan data user:", e);
+            }
+        }
+
+        function getStoredOrders(username) {
+            try {
+                const key = 'zerostore_orders_' + username.toLowerCase();
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveStoredOrders(username, orders) {
+            try {
+                const key = 'zerostore_orders_' + username.toLowerCase();
+                localStorage.setItem(key, JSON.stringify(orders));
+            } catch (e) {
+                console.error("Gagal menyimpan pesanan:", e);
+            }
+        }
+
+        function renderDashboardData() {
+            if (!currentAccount) return;
+            const users = getRegisteredUsers();
+            const key = currentAccount.toLowerCase();
+            const user = users[key];
+
+            if (user) {
+                document.getElementById('dash-username').textContent = user.username;
+                document.getElementById('dash-saldo').textContent = (user.saldo || 0).toLocaleString('id-ID');
+
+                const orders = getStoredOrders(currentAccount);
+                document.getElementById('dash-total-order').textContent = orders.length;
+                document.getElementById('dash-order-aktif').textContent = orders.filter(o => o.status === 'Berhasil' || o.status === 'Proses').length;
+
+                const recentContainer = document.getElementById('order-list-container');
+                recentContainer.innerHTML = '';
+
+                if (orders.length === 0) {
+                    recentContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Belum ada pesanan terakhir.</p>`;
+                } else {
+                    orders.slice(0, 3).forEach(ord => {
+                        const div = document.createElement('div');
+                        div.className = "p-3 bg-slate-950/70 border border-white/5 r-btn flex justify-between items-center";
+                        div.innerHTML = `
+                            <div>
+                                <h4 class="text-xs font-bold text-white">${ord.appName} (${ord.country})</h4>
+                                <p class="text-[10px] text-sky-400 font-mono">${ord.number}</p>
+                            </div>
+                            <span class="text-[10px] px-2 py-0.5 r-btn bg-emerald-500/20 text-emerald-400 font-bold">${ord.status}</span>
+                        `;
+                        recentContainer.appendChild(div);
+                    });
+                }
+
+                // Dev panel button display logic (case-insensitive check)
+                const devBtn = document.getElementById('developer-panel-entry');
+                if (user.isDeveloper || currentAccount.toLowerCase() === 'jarrzy') {
+                    devBtn.classList.remove('hidden');
+                } else {
+                    devBtn.classList.add('hidden');
+                }
+            }
+        }
+
+        // --- SELECTION & BUY FLOW SYSTEM ---
+        function selectApp(appName, iconClass, bgColor, basePrice) {
+            currentSelectedApp = { name: appName, icon: iconClass, color: bgColor, basePrice: basePrice };
+            
+            document.getElementById('selected-app-icon').className = `w-8 h-8 ${bgColor} r-btn flex items-center justify-center`;
+            document.getElementById('selected-app-icon').innerHTML = `<i class="${iconClass}"></i>`;
+            document.getElementById('selected-app-name').textContent = appName;
+
+            document.getElementById('buy-step-apps').classList.add('hidden');
+            document.getElementById('buy-step-country').classList.remove('hidden');
+            document.getElementById('buy-step-servers').classList.add('hidden');
+
+            renderCountriesList();
+        }
+
+        function renderCountriesList() {
+            const container = document.getElementById('country-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            COUNTRIES_DATA.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "p-3.5 glass-card bg-slate-900/90 border-slate-800 hover:border-brand-500/50 r-50 flex justify-between items-center cursor-pointer transition-all";
+                div.onclick = () => selectCountry(c);
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${c.flag}</span>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">${c.name}</h4>
+                            <p class="text-[10px] text-slate-400">+${c.code}</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectCountry(countryObj) {
+            currentSelectedCountry = countryObj;
+
+            document.getElementById('server-app-icon').className = `w-8 h-8 ${currentSelectedApp.color} r-btn flex items-center justify-center`;
+            document.getElementById('server-app-icon').innerHTML = `<i class="${currentSelectedApp.icon}"></i>`;
+            document.getElementById('server-app-title').textContent = currentSelectedApp.name;
+            document.getElementById('server-header-country').textContent = `${currentSelectedCountry.flag} ${currentSelectedCountry.name} (+${currentSelectedCountry.code})`;
+
+            document.getElementById('buy-step-country').classList.add('hidden');
+            document.getElementById('buy-step-servers').classList.remove('hidden');
+
+            renderServersList();
+        }
+
+        function renderServersList() {
+            const container = document.getElementById('server-list');
+            container.innerHTML = '';
+
+            let servers = [];
+            if (currentSelectedApp.name === 'WhatsApp Vermate') {
+                servers = [
+                    { name: 'Meta Verified Official Server', price: 120000, speed: 'Instan & Centang Biru', stock: 15 }
+                ];
+            } else {
+                servers = [
+                    { name: 'Server Standar 1', price: Math.max(3500, currentSelectedApp.basePrice), speed: 'Sangat Cepat', stock: 120 },
+                    { name: 'Server VIP High-Speed', price: Math.max(3500, currentSelectedApp.basePrice) + 1000, speed: 'Instan', stock: 85 },
+                    { name: 'Server Priority Express', price: Math.max(3500, currentSelectedApp.basePrice) + 2000, speed: 'Super Instan', stock: 50 }
+                ];
+            }
+
+            servers.forEach(srv => {
+                const div = document.createElement('div');
+                div.className = "glass-card p-4 r-50 bg-slate-900/90 border-slate-800 space-y-3";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-xs font-bold text-white">${srv.name}</h4>
+                            <p class="text-[10px] text-slate-400">Kecepatan: <span class="text-emerald-400 font-semibold">${srv.speed}</span> &bull; Stok: <span class="text-white font-bold">${srv.stock}</span></p>
+                        </div>
+                        <span class="text-sm font-extrabold text-emerald-400">Rp ${srv.price.toLocaleString('id-ID')}</span>
+                    </div>
+                    <button onclick="processOrder('${srv.name}', ${srv.price})" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs r-btn shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-shopping text-xs"></i>
+                        <span>BELI SEKARANG</span>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function backToApps() {
+            document.getElementById('buy-step-apps').classList.remove('hidden');
+            document.getElementById('buy-step-country').classList.add('hidden');
+            document.getElementById('buy-step-servers').classList.add('hidden');
+        }
+
+        function backToCountries() {
+            document.getElementById('buy-step-country').classList.remove('hidden');
+            document.getElementById('buy-step-servers').classList.add('hidden');
+        }
+
+        // --- AUTHENTICATION FIXED & ROBUST ---
+        function handleAuth(event, type) {
+            event.preventDefault();
+            const users = getRegisteredUsers();
+
+            if (type === 'register') {
+                const username = document.getElementById('reg-username').value.trim();
+                const pass = document.getElementById('reg-password').value;
+                const confirmPass = document.getElementById('reg-confirm-password').value;
+
+                if (!username || !pass) {
+                    return showToast('Isi semua bidang formulir!', 'error');
+                }
+
+                if (pass !== confirmPass) {
+                    return showToast('Konfirmasi password tidak cocok!', 'error');
+                }
+
+                const userKey = username.toLowerCase();
+                if (users[userKey]) {
+                    return showToast('Username sudah terdaftar!', 'error');
+                }
+
+                users[userKey] = {
+                    username: username,
+                    password: pass,
+                    saldo: 0,
+                    totalOrders: 0,
+                    activeOrders: 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                saveUsersData(users);
+                showToast('Registrasi berhasil! Silakan login.', 'success');
+
+                switchTab('login');
+                document.getElementById('login-username').value = username;
+                document.getElementById('login-password').value = '';
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-confirm-password').value = '';
+
+            } else if (type === 'login') {
+                const usernameInput = document.getElementById('login-username').value.trim();
+                const pass = document.getElementById('login-password').value;
+
+                if (!usernameInput || !pass) {
+                    return showToast('Username dan password harus diisi!', 'error');
+                }
+
+                const userKey = usernameInput.toLowerCase();
+                const user = users[userKey];
+
+                if (!user || user.password !== pass) {
+                    return showToast('Username atau password salah! Pastikan ketikan benar.', 'error');
+                }
+
+                currentAccount = user.username;
+                localStorage.setItem('zerostore_active_user', currentAccount);
+
+                showToast(`Selamat datang kembali, ${user.username}!`, 'success');
+                
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('bottom-nav').classList.remove('hidden');
+
+                renderDashboardData();
+                renderCountriesList();
+            }
+        }
+
+        function handleLogout() {
+            currentAccount = null;
+            localStorage.removeItem('zerostore_active_user');
+
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('buy-section').classList.add('hidden');
+            document.getElementById('order-section').classList.add('hidden');
+            document.getElementById('devpanel-section').classList.add('hidden');
+            document.getElementById('bottom-nav').classList.add('hidden');
+
+            showToast('Berhasil keluar dari akun.', 'info');
+        }
+
+        function copyToClipboard(text) {
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+            showToast("Nomor berhasil disalin!", "success");
+        }
+
+        // --- DEPOSIT SYSTEM ---
+        function togglePaymentInfo(method) {
+            document.getElementById('payment-method-label').textContent = method;
+            document.getElementById('payment-phone-number').textContent = PAYMENT_NUMBERS[method] || "088263096528";
+        }
+
+        function previewProofImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedProofBase64 = e.target.result;
+                    document.getElementById('proof-preview-img').src = uploadedProofBase64;
+                    document.getElementById('proof-preview-box').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function submitDepositRequest(event) {
+            event.preventDefault();
+            const amountInput = parseInt(document.getElementById('topup-amount').value);
+
+            if (isNaN(amountInput) || amountInput < 20000 || amountInput > 1500000) {
+                return showToast('Nominal deposit Rp 20.000 - Rp 1.500.000!', 'error');
+            }
+
+            if (!uploadedProofBase64) {
+                return showToast('Wajib mengunggah foto bukti transaksi!', 'error');
+            }
+
+            const methodRadio = document.querySelector('input[name="payment_method"]:checked');
+            const method = methodRadio ? methodRadio.value : 'DANA';
+
+            const newReq = {
+                id: 'DEP-' + Date.now(),
+                username: currentAccount,
+                amount: amountInput,
+                method: method,
+                proofImg: uploadedProofBase64,
+                status: 'Pending',
+                date: new Date().toLocaleString('id-ID')
+            };
+
+            const requests = getDepositRequests();
+            requests.unshift(newReq);
+            saveDepositRequests(requests);
+
+            closeModal('modal-topup');
+            document.getElementById('topup-amount').value = '';
+            document.getElementById('topup-proof').value = '';
+            document.getElementById('proof-preview-box').classList.add('hidden');
+            uploadedProofBase64 = null;
+
+            showToast('Bukti deposit berhasil dikirim! Menunggu ACC.', 'success');
+        }
+
+        // --- DEVELOPER PANEL LOGIC ---
+        function switchDevTab(tab) {
+            const reqBtn = document.getElementById('devtab-requests-btn');
+            const userBtn = document.getElementById('devtab-users-btn');
+            const reqTab = document.getElementById('devtab-requests');
+            const userTab = document.getElementById('devtab-users');
+
+            if (tab === 'requests') {
+                reqTab.classList.remove('hidden');
+                userTab.classList.add('hidden');
+                reqBtn.className = "flex-1 py-2.5 text-xs font-semibold r-50 text-white bg-amber-600 shadow-md flex items-center justify-center gap-1.5";
+                userBtn.className = "flex-1 py-2.5 text-xs font-semibold r-50 text-slate-400 hover:text-white flex items-center justify-center gap-1.5";
+            } else {
+                userTab.classList.remove('hidden');
+                reqTab.classList.add('hidden');
+                userBtn.className = "flex-1 py-2.5 text-xs font-semibold r-50 text-white bg-amber-600 shadow-md flex items-center justify-center gap-1.5";
+                reqBtn.className = "flex-1 py-2.5 text-xs font-semibold r-50 text-slate-400 hover:text-white flex items-center justify-center gap-1.5";
+            }
+        }
+
+        function renderDevPanelData() {
+            if (!currentAccount || currentAccount.toLowerCase() !== 'jarrzy') return;
+
+            const requests = getDepositRequests();
+            const reqContainer = document.getElementById('dev-deposit-requests-list');
+            reqContainer.innerHTML = '';
+
+            if (requests.length === 0) {
+                reqContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Belum ada permintaan deposit.</p>`;
+            } else {
+                requests.forEach((req, idx) => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-slate-950/80 border border-white/10 r-btn space-y-2";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold text-white">${req.username}</span>
+                                <p class="text-[10px] text-slate-400">${req.method} &bull; ${req.date}</p>
+                            </div>
+                            <span class="text-xs font-extrabold text-amber-400">Rp ${req.amount.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                            <button onclick="viewDevProof(${idx})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 text-[10px] r-btn flex items-center gap-1">
+                                <i class="fa-solid fa-image"></i> Lihat Bukti
+                            </button>
+                            <div class="flex gap-1.5">
+                                ${req.status === 'Pending' ? `
+                                    <button onclick="processDepositACC('${req.id}', true)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] r-btn">ACC</button>
+                                    <button onclick="processDepositACC('${req.id}', false)" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white font-bold text-[10px] r-btn">Tolak</button>
+                                ` : `
+                                    <span class="text-[10px] px-2 py-0.5 r-btn ${req.status === 'Disetujui' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}">${req.status}</span>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                    reqContainer.appendChild(div);
+                });
+            }
+
+            const users = getRegisteredUsers();
+            const usersContainer = document.getElementById('dev-users-list');
+            usersContainer.innerHTML = '';
+
+            Object.keys(users).forEach(uKey => {
+                const usr = users[uKey];
+                const div = document.createElement('div');
+                div.className = "p-3 bg-slate-950/80 border border-white/10 r-btn flex items-center justify-between";
+                div.innerHTML = `
+                    <div>
+                        <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                            ${usr.username} ${usr.username.toLowerCase() === 'jarrzy' ? '<i class="fa-solid fa-crown text-amber-400 text-[10px]"></i>' : ''}
+                        </span>
+                        <p class="text-[10px] text-slate-400 font-mono">Saldo: <span class="text-emerald-400 font-bold">Rp ${(usr.saldo || 0).toLocaleString('id-ID')}</span></p>
+                    </div>
+                    <button onclick="changeUserBalancePrompt('${usr.username}')" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10px] r-btn">
+                        Ubah Saldo
+                    </button>
+                `;
+                usersContainer.appendChild(div);
+            });
+        }
+
+        function viewDevProof(index) {
+            const requests = getDepositRequests();
+            const req = requests[index];
+            if (!req) return;
+
+            document.getElementById('dev-proof-img-full').src = req.proofImg;
+            document.getElementById('dev-proof-info-text').innerHTML = `User: <b>${req.username}</b> | Nominal: <b class="text-emerald-400">Rp ${req.amount.toLocaleString('id-ID')}</b> | ${req.method}`;
+
+            const actionContainer = document.getElementById('dev-proof-action-buttons');
+            if (req.status === 'Pending') {
+                actionContainer.innerHTML = `
+                    <button onclick="processDepositACC('${req.id}', true); closeModal('modal-dev-proof');" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs r-btn">ACC SEKARANG</button>
+                    <button onclick="processDepositACC('${req.id}', false); closeModal('modal-dev-proof');" class="py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs r-btn">TOLAK DEPOSIT</button>
+                `;
+            } else {
+                actionContainer.innerHTML = `<span class="col-span-2 py-2 text-center text-xs font-bold ${req.status === 'Disetujui' ? 'text-emerald-400' : 'text-red-400'}">Status: ${req.status}</span>`;
+            }
+
+            openModal('modal-dev-proof');
+        }
+
+        function processDepositACC(reqId, isApproved) {
+            const requests = getDepositRequests();
+            const idx = requests.findIndex(r => r.id === reqId);
+            if (idx === -1) return;
+
+            const req = requests[idx];
+            if (req.status !== 'Pending') {
+                return showToast('Permintaan ini sudah diproses!', 'info');
+            }
+
+            if (isApproved) {
+                req.status = 'Disetujui';
+                const users = getRegisteredUsers();
+                const uKey = req.username.toLowerCase();
+                if (users[uKey]) {
+                    users[uKey].saldo = (users[uKey].saldo || 0) + req.amount;
+                    saveUsersData(users);
+                }
+                showToast(`Deposit Rp ${req.amount.toLocaleString('id-ID')} untuk ${req.username} berhasil disetujui!`, 'success');
+            } else {
+                req.status = 'Ditolak';
+                showToast(`Deposit ${req.username} berhasil ditolak.`, 'info');
+            }
+
+            saveDepositRequests(requests);
+            renderDevPanelData();
+            renderDashboardData();
+        }
+
+        let targetUserToEdit = null;
+
+        function changeUserBalancePrompt(username) {
+            targetUserToEdit = username;
+            const users = getRegisteredUsers();
+            const uKey = username.toLowerCase();
+            if (!users[uKey]) return;
+
+            document.getElementById('change-saldo-username').textContent = `User: ${username}`;
+            document.getElementById('input-new-saldo').value = users[uKey].saldo || 0;
+            openModal('modal-change-saldo');
+        }
+
+        function confirmChangeUserBalance() {
+            if (!targetUserToEdit) return;
+            const users = getRegisteredUsers();
+            const uKey = targetUserToEdit.toLowerCase();
+            if (!users[uKey]) return;
+
+            const val = parseInt(document.getElementById('input-new-saldo').value);
+            if (isNaN(val) || val < 0) {
+                return showToast('Masukkan angka saldo yang valid!', 'error');
+            }
+
+            users[uKey].saldo = val;
+            saveUsersData(users);
+            closeModal('modal-change-saldo');
+            showToast(`Saldo ${targetUserToEdit} berhasil diubah jadi Rp ${val.toLocaleString('id-ID')}`, 'success');
+            renderDevPanelData();
+            renderDashboardData();
+        }
+
+        function navigateToView(viewName) {
+            const views = ['dashboard-section', 'buy-section', 'order-section', 'devpanel-section'];
+            views.forEach(v => {
+                const el = document.getElementById(v);
+                if (el) el.classList.add('hidden');
+            });
+
+            if (viewName === 'home') {
+                document.getElementById('dashboard-section').classList.remove('hidden');
+            } else if (viewName === 'beli') {
+                document.getElementById('buy-section').classList.remove('hidden');
+            } else if (viewName === 'riwayat') {
+                document.getElementById('order-section').classList.remove('hidden');
+                renderFullOrderHistory();
+            } else if (viewName === 'devpanel') {
+                document.getElementById('devpanel-section').classList.remove('hidden');
+                renderDevPanelData();
+            }
+        }
+
+        function openMutationModal() {
+            if (!currentAccount) return showToast('Silakan login terlebih dahulu!', 'error');
+
+            const requests = getDepositRequests().filter(r => r.username.toLowerCase() === currentAccount.toLowerCase());
+            const container = document.getElementById('mutation-list-container');
+            container.innerHTML = '';
+
+            if (requests.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada riwayat deposit.</p>`;
+            } else {
+                requests.forEach(req => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-slate-900/90 border border-white/5 r-btn flex justify-between items-center";
+                    div.innerHTML = `
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-white">+Rp ${req.amount.toLocaleString('id-ID')}</span>
+                                <span class="text-[9px] px-2 py-0.5 r-btn font-semibold ${req.status === 'Disetujui' ? 'bg-emerald-500/20 text-emerald-400' : (req.status === 'Ditolak' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400')}">${req.status}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${req.method} &bull; ${req.date}</p>
+                        </div>
+                        <i class="fa-solid fa-arrow-down-left text-emerald-400 text-sm"></i>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            openModal('modal-mutation');
+        }
+
+        function processOrder(serverName, price) {
+            if (!currentAccount) return showToast('Silakan login terlebih dahulu!', 'error');
+
+            const users = getRegisteredUsers();
+            const key = currentAccount.toLowerCase();
+            const user = users[key];
+
+            if (!user || user.saldo < price) {
+                showToast('Saldo Anda tidak mencukupi! Silakan Top Up.', 'error');
+                openModal('modal-topup');
+                return;
+            }
+
+            user.saldo -= price;
+            saveUsersData(users);
+
+            const randomPhone = '+' + currentSelectedCountry.code + '8' + Math.floor(100000000 + Math.random() * 900000000);
+            const randomOtp = currentSelectedApp.name === 'WhatsApp Vermate' ? 'META-VERIFIED-BLUE-TICK' : Math.floor(100000 + Math.random() * 900000).toString();
+
+            const newOrder = {
+                id: 'ORD-' + Date.now(),
+                appName: currentSelectedApp.name,
+                country: currentSelectedCountry.name,
+                server: serverName,
+                number: randomPhone,
+                price: price,
+                status: 'Berhasil',
+                otp: randomOtp,
+                date: new Date().toLocaleString('id-ID')
+            };
+
+            const orders = getStoredOrders(currentAccount);
+            orders.unshift(newOrder);
+            saveStoredOrders(currentAccount, orders);
+
+            showToast(`Berhasil membeli nomor ${currentSelectedApp.name}!`, 'success');
+            renderDashboardData();
+
+            setActiveNav('riwayat');
+        }
+
+        function renderFullOrderHistory() {
+            if (!currentAccount) return;
+            const orders = getStoredOrders(currentAccount);
+            const container = document.getElementById('full-order-history-list');
+            document.getElementById('order-history-count').textContent = `${orders.length} Order`;
+
+            container.innerHTML = '';
+
+            if (orders.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada riwayat pesanan.</p>`;
+                return;
+            }
+
+            orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = "glass-card p-4 r-50 bg-slate-900/90 border-slate-800 space-y-3";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] text-brand-400 font-mono font-semibold">${order.id}</span>
+                            <h4 class="text-sm font-bold text-white">${order.appName} (${order.country})</h4>
+                            <p class="text-[11px] text-slate-400">${order.server}</p>
+                        </div>
+                        <span class="px-2.5 py-1 text-[10px] font-bold r-btn bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            ${order.status}
+                        </span>
+                    </div>
+
+                    <div class="bg-slate-950/80 p-3 r-btn flex justify-between items-center border border-white/5">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">Nomor Virtual:</span>
+                            <span class="text-xs font-mono font-bold text-sky-400 select-all">${order.number}</span>
+                        </div>
+                        <button onclick="copyToClipboard('${order.number}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] r-btn">
+                            <i class="fa-regular fa-copy"></i> Salin
+                        </button>
+                    </div>
+
+                    ${order.otp ? `
+                    <div class="bg-blue-950/30 p-2.5 r-btn flex justify-between items-center border border-blue-500/20">
+                        <span class="text-[10px] text-blue-300 font-medium">${order.appName === 'WhatsApp Vermate' ? 'Status Centang Biru:' : 'Kode OTP:'}</span>
+                        <span class="text-xs font-mono font-black text-blue-400 tracking-wider">${order.otp}</span>
+                    </div>
+                    ` : ''}
+
+                    <div class="flex justify-between items-center text-[11px] pt-1 border-t border-white/5">
+                        <span class="text-slate-400">${order.date}</span>
+                        <span class="font-bold text-emerald-400">Rp ${order.price.toLocaleString('id-ID')}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterOrderHistory() {
+            const query = document.getElementById('search-history').value.toLowerCase();
+            document.querySelectorAll('#full-order-history-list > div').forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(query) ? 'block' : 'none';
+            });
+        }
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const regForm = document.getElementById('register-form');
+            const loginBtn = document.getElementById('tab-login-btn');
+            const regBtn = document.getElementById('tab-register-btn');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                loginBtn.className = "tab-btn flex-1 py-3 text-sm font-semibold r-50 text-white bg-brand-600 shadow-md flex items-center justify-center gap-2";
+                regBtn.className = "tab-btn flex-1 py-3 text-sm font-semibold r-50 text-slate-400 hover:text-white flex items-center justify-center gap-2";
+            } else {
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                regBtn.className = "tab-btn flex-1 py-3 text-sm font-semibold r-50 text-white bg-brand-600 shadow-md flex items-center justify-center gap-2";
+                loginBtn.className = "tab-btn flex-1 py-3 text-sm font-semibold r-50 text-slate-400 hover:text-white flex items-center justify-center gap-2";
+            }
+        }
+
+        function setActiveNav(navName) {
+            const navIds = ['home', 'beli', 'topup', 'riwayat'];
+            
+            if (navName === 'topup') {
+                openModal('modal-topup');
+                return;
+            }
+
+            navIds.forEach(id => {
+                const btn = document.getElementById('nav-' + id);
+                if (btn) {
+                    btn.className = id === navName 
+                        ? "flex flex-col items-center justify-center py-2 px-4 r-btn bg-brand-600 text-white transition-all shadow-md"
+                        : "flex flex-col items-center justify-center py-2 px-4 r-btn text-slate-400 hover:text-white transition-all";
+                }
+            });
+            navigateToView(navName);
+        }
+
+        function togglePasswordVisibility(id, event) {
+            if (event) event.preventDefault();
+            const input = document.getElementById(id);
+            if (input) {
+                input.type = input.type === 'password' ? 'text' : 'password';
+                const btn = event ? event.currentTarget : null;
+                if (btn && btn.querySelector('i')) {
+                    const icon = btn.querySelector('i');
+                    if (input.type === 'text') {
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                }
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function closeModalOnBackdrop(event, id) {
+            if (event.target.id === id) {
+                closeModal(id);
+            }
+        }
+        function setTopupPreset(amt) { document.getElementById('topup-amount').value = amt; }
+
+        function filterApps() {
+            const query = document.getElementById('search-app').value.toLowerCase();
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.style.display = card.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        function filterCountries() {
+            const query = document.getElementById('search-country').value.toLowerCase();
+            document.querySelectorAll('#country-list > div').forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = message;
+            toastIcon.className = type === 'error' ? "fas fa-circle-exclamation text-red-400 text-lg" : "fas fa-check-circle text-brand-400 text-lg";
+
+            toast.classList.remove('-translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- RESTORE SESSION ON LOAD & AUTO SEED DEVELOPER ---
+        window.addEventListener('load', () => {
+            getRegisteredUsers();
+
+            const activeUser = localStorage.getItem('zerostore_active_user');
+            if (activeUser) {
+                const users = getRegisteredUsers();
+                if (users[activeUser.toLowerCase()]) {
+                    currentAccount = users[activeUser.toLowerCase()].username;
+                    document.getElementById('auth-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.remove('hidden');
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+
+                    renderDashboardData();
+                    renderCountriesList();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
